@@ -56,6 +56,7 @@ class AudioManager: ObservableObject {
     }
     @Published private(set) var isAudioSetupInProgress: Bool = false
     @Published private(set) var isStoppingRecording = false
+    @Published private(set) var isProcessingTranscription: Bool = false
     @Published private(set) var isSpeechDetected = false
     @Published var recordingStartTime: Date?
     @Published private(set) var currentInputDeviceName: String?
@@ -149,6 +150,14 @@ class AudioManager: ObservableObject {
         
         // Setup recovery service callbacks
         setupRecoveryCallbacks()
+        
+        // Setup transcription processing complete notification
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleTranscriptionProcessingComplete),
+            name: NSNotification.Name("TranscriptionProcessingComplete"),
+            object: nil
+        )
     }
     
     private func setupNotificationServiceCallbacks() {
@@ -425,10 +434,11 @@ class AudioManager: ObservableObject {
         // Stop audio level monitoring first to prevent spikes
         AudioLevelMonitor.shared.stopMonitoring()
         
-        // Update UI state and hide HUD
+        // Set processing state and keep HUD visible
         DispatchQueue.main.async {
             self.isRecording = false
-            self.hideNotchIndicator()
+            self.isProcessingTranscription = true
+            // Keep HUD visible during processing
         }
         
         // Stop speech detection
@@ -493,6 +503,7 @@ class AudioManager: ObservableObject {
         // Immediately update UI state and hide HUD
         DispatchQueue.main.async {
             self.isRecording = false
+            self.isProcessingTranscription = false
             self.hideNotchIndicator()
         }
         
@@ -780,6 +791,15 @@ class AudioManager: ObservableObject {
             } else {
                 print("📝 Block mode: Waiting for queue to process \(self.audioProcessingQueueService.queueLength) items")
             }
+        }
+    }
+    
+    // MARK: - Notification Handlers
+    
+    @objc private func handleTranscriptionProcessingComplete() {
+        DispatchQueue.main.async {
+            self.isProcessingTranscription = false
+            self.hideNotchIndicator()
         }
     }
     

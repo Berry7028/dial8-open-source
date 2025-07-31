@@ -109,6 +109,9 @@ class AudioProcessingQueueService: ObservableObject {
                 // Mark as done and process next
                 self.isCurrentlyProcessing = false
                 self.processNextInQueue()
+                
+                // Notify that processing is complete
+                NotificationCenter.default.post(name: NSNotification.Name("TranscriptionProcessingComplete"), object: nil)
             }
         }
     }
