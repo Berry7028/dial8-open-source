@@ -137,6 +137,18 @@ struct HUDStatusView {
                         .onAppear {
                             print("🔄 HUD: Showing setup animation")
                         }
+                } else if audioManager.isProcessingTranscription {
+                    // Show "Transcription..." text during processing
+                    HStack {
+                        Text("Transcription...")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(Color.white)
+                    }
+                    .frame(width: 52)  // Fits the ultra-compact HUD
+                    .transition(.opacity)
+                    .onAppear {
+                        print("📝 HUD: Showing transcription processing")
+                    }
                 } else if audioManager.isRecording {
                     AudioWaveformView()
                         .frame(width: 52)  // Fits the ultra-compact HUD
